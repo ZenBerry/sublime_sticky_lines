@@ -7,7 +7,8 @@ import textwrap
 from html import escape
 
 enabled = False
-fps = 120
+coffee = False
+fps = 300
 
 thread = None
 window = None
@@ -29,8 +30,13 @@ class ViewListener(sublime_plugin.EventListener):
         """
         global window
         global view
+        global coffee
         window = sublime.active_window()
         view = window.active_view()
+        coffee = True
+    def on_deactivated(self, incoming_view):
+        global coffee
+        coffee = True
 
 class FileSaveListener(sublime_plugin.EventListener):
     def on_pre_save_async(self, view):
@@ -60,7 +66,7 @@ def sticky_main():
     intro_text = 'Hello! ^_^ Start scrolling to see some sticky lines'
     intro_text_progress = ''
     intro_text_typing_delay = 2
-    intro_text_final_delay = 60
+    intro_text_final_delay = 120
 
     for i in range(intro_text_final_delay):
         intro_text += ' '
@@ -70,7 +76,7 @@ def sticky_main():
     prev_parent_string = ""
     window = sublime.active_window()
     view = window.active_view()
-    loop_count = 0;
+    loop_count = 0
 
     def normalize_indentation(s: str) -> str:
         """
@@ -118,7 +124,6 @@ def sticky_main():
 
             if temp_indentation < top_viewer_line_indentation:
                 parent_line_number = counter
-
                 parent_line_string = ""
                 try: parent_line_string = lines[parent_line_number]
                 except: pass
@@ -129,6 +134,7 @@ def sticky_main():
         return [top_viewer_line_string, parent_line_string, parent_line_number]
 
     while enabled:
+        global coffee
         top_viewer_line_number = view.rowcol(view.visible_region().begin())[0]+4 # Get the top visible line
         original_file = view.substr(sublime.Region(0, view.size()))
 
@@ -165,8 +171,8 @@ def sticky_main():
 
             return {"html" : html, "parent_line_number": parent_line_number}
 
-        if (top_viewer_line_number != prev_top or intro):
-
+        if (top_viewer_line_number != prev_top or intro or coffee):
+            global coffee
             if len(intro_text_progress) < len(intro_text):
                 if loop_count % intro_text_typing_delay == 0:
                     intro_text_progress += intro_text[len(intro_text_progress)]
@@ -181,12 +187,12 @@ def sticky_main():
                     init_line_number = magic_res['parent_line_number']
                     if magic_res['parent_line_number'] < 1:
                         break
-
             view.show_popup(
                 final_html,
                 location=view.visible_region().begin(),
                 max_width=1400,
                 flags=16)
+            coffee = False
 
         prev_top = top_viewer_line_number
         prev_parent_string = parent_line_string
@@ -194,10 +200,12 @@ def sticky_main():
 
         time.sleep(1/fps)
 
-        # Adjust fps to save your CPU haha.
-        # There has to be a better way, but I don't see relevant event listeners for now.
-        # on_hover is the closest, but it won't fire on scroll.
-        # TODO: try playing with 'point' and 'hover_zone' parameters: https://www.sublimetext.com/docs/api_reference.html#sublime_plugin.EventListener.on_hover
+        """
+        Adjust fps to save your CPU haha.
+        There has to be a better way, but I don't see relevant event listeners for now.
+        on_hover is the closest, but it won't fire on scroll.
+        TODO: try playing with 'point' and 'hover_zone' parameters: https://www.sublimetext.com/docs/api_reference.html#sublime_plugin.EventListener.on_hover
+        """
 
     return
 
