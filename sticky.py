@@ -192,9 +192,6 @@ def sticky_main():
         prev_parent_string = parent_line_string
         loop_count += 1
 
-
-
-
         time.sleep(1/fps)
 
         # Adjust fps to save your CPU haha.
