@@ -1,3 +1,3 @@
 [
-    { "keys": ["ctrl+shift+l"], "command": "boom" }
+    { "keys": ["ctrl+shift+l"], "command": "toggle_sticky" }
 ]

@@ -2,6 +2,8 @@
 
 A clumsy little attempt to implement VSCode's "sticky lines" feature on Sublime Text. <br>
 Since there's no full webview support, and also because I'm a mess, the thing is quite workaround-y. <br>
+I'll try to find a better way, but now it loops indefinitely to monitor changes in `view.visible_region` in real time. It is offensively ineffective haha. To save CPU, adjust `time.sleep(0.001)` 
+
 Use at your own risk! :D
 
 ![Screenshot](screen.png "Screenshot")
@@ -15,8 +17,6 @@ But better don't, cause otherwise you are going to witness some teenage string c
 3. Throw 'Sticky' into there
 4. Open or relaunch your cute little Sublime
 5. Press `command+control+l` to activate my horrible plugin
-6. Stop scrolling Instagram and start scrolling your 2007 code at last
-7. You also have to eat sometimes. Use paper dishes if you can't touch water
 
 ### Activation shortcut on Windows and Linux (untested though):
 ```
