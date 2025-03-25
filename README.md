@@ -2,14 +2,14 @@
 
 A clumsy little attempt to implement VSCode's "sticky lines" feature on Sublime Text. <br>
 Since there's no full webview support, and also because I'm a mess, the thing is quite workaround-y. <br>
-I'll try to find a better way, but now it loops indefinitely to monitor changes in `view.visible_region` in real time. It is offensively ineffective haha. To save CPU, adjust `time.sleep(0.001)` 
+I'll try to find a better way, but now it loops indefinitely to monitor changes in `view.visible_region` in real time. It is offensively ineffective haha. You can adjust `fps` variable to save some CPU.
 
-Use at your own risk! :D
+Update: fixed `list index out of range` errors that caused crashes. <br>
+Use at your own risk! :D 
 
 ![Screenshot](screen.png "Screenshot")
 
-*(You can also make it full width, just add some `style="width: 2000px"` etc. to line `120` of `sticky.py`) <br>
-But better don't, cause otherwise you are going to witness some teenage string concatenation phaha.*
+*(You can also make it full width, just add some `style="width: 2000px"` etc. to `html = ...` of `sticky.py`) <br>*
 
 ### Hacky installation manual (for Mac):
 1. Download this repo into a folder 'Sticky'

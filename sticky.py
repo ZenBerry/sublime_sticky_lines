@@ -13,6 +13,14 @@ thread = None
 window = None
 view = None
 
+class toggleStickyCommand(sublime_plugin.TextCommand):
+    def run(self, edit):
+        global enabled
+        enabled = not enabled
+        if enabled:
+            plugin_loaded()
+        else:
+            view.hide_popup()
 
 class ViewListener(sublime_plugin.EventListener):
     def on_activated(self, incoming_view):
@@ -42,15 +50,6 @@ class FileSaveListener(sublime_plugin.EventListener):
             thread.join()
             print(thread)
 
-def normalize_indentation(s: str) -> str:
-    """
-    Formats the raw string containing your current file's contents to find parents efficiently:
-    Removes common leading whitespace from all lines using textwrap.dedent().
-    Replaces tabs with spaces using .expandtabs()
-    Don't worry, it does NOT modify your code haha.
-    """
-    return textwrap.dedent(s).expandtabs()
-
 def sticky_main():
     global enabled
     global thread
@@ -60,6 +59,11 @@ def sticky_main():
     intro = True
     intro_text = 'Hello! ^_^ Start scrolling to see some sticky lines'
     intro_text_progress = ''
+    intro_text_typing_delay = 2
+    intro_text_final_delay = 60
+
+    for i in range(intro_text_final_delay):
+        intro_text += ' '
 
     prev_top = None
     parent_line_string = ""
@@ -68,15 +72,23 @@ def sticky_main():
     view = window.active_view()
     loop_count = 0;
 
+    def normalize_indentation(s: str) -> str:
+        """
+        Formats the raw string containing your current file's contents to find parents efficiently:
+        Removes common leading whitespace from all lines using textwrap.dedent().
+        Replaces tabs with spaces using .expandtabs()
+        Don't worry, it does NOT modify your code haha.
+        """
+        return textwrap.dedent(s).expandtabs()
+
     def find_parent_function(code, top_viewer_line_number):
         parent_line_string = ""
         lines = code.splitlines()
+        
 
         top_viewer_line_string = ""
-        try:
-            top_viewer_line_string = lines[top_viewer_line_number]
-        except:
-            top_viewer_line_string = lines[1]
+        try: top_viewer_line_string = lines[top_viewer_line_number] 
+        except: pass
 
         global counter #honestly, it works, I don't wanna touch it haha :D
         counter = 0
@@ -84,7 +96,11 @@ def sticky_main():
         def get_indentation(line_index):
             global counter
             counter = line_index
-            line = lines[line_index]
+
+            line = ""
+            try: line = lines[line_index]
+            except: pass
+
             if line.strip() != "":  # Good line
                 return len(line) - len(line.lstrip())
             elif line_index > 0:  # Empty line, look up
@@ -95,12 +111,18 @@ def sticky_main():
         parent_line_number = -1
 
         for i in range(top_viewer_line_number, 0, -1):
-            line = lines[i]
+            try: line = lines[i]
+            except: pass
+
             temp_indentation = get_indentation(i)
 
             if temp_indentation < top_viewer_line_indentation:
                 parent_line_number = counter
-                parent_line_string = lines[parent_line_number]
+
+                parent_line_string = ""
+                try: parent_line_string = lines[parent_line_number]
+                except: pass
+
                 counter = 0
                 break
 
@@ -108,12 +130,16 @@ def sticky_main():
 
     while enabled:
         top_viewer_line_number = view.rowcol(view.visible_region().begin())[0]+4 # Get the top visible line
+        original_file = view.substr(sublime.Region(0, view.size()))
 
+        if original_file == '':
+            continue
+        
         def magic(line_number_in_question):
+
             content = '''\n''' #WARNING: counting lines from 1 :D
             content += view.substr(sublime.Region(0, view.size()))
             content = normalize_indentation(content)
-            linne = content.split('\n')
 
             escaped_top_viewer_line_string = escape(find_parent_function(content, line_number_in_question)[0])
 
@@ -139,14 +165,14 @@ def sticky_main():
 
             return {"html" : html, "parent_line_number": parent_line_number}
 
-        if (top_viewer_line_number != prev_top or intro == True):
-            global intro_text_progress
-            
+        if (top_viewer_line_number != prev_top or intro):
+
             if len(intro_text_progress) < len(intro_text):
-                if loop_count % 2 == 0:
+                if loop_count % intro_text_typing_delay == 0:
                     intro_text_progress += intro_text[len(intro_text_progress)]
                     final_html = intro_text_progress
             else:
+                intro = False
                 final_html = ""
                 init_line_number = top_viewer_line_number
                 while True:
@@ -180,17 +206,12 @@ def sticky_main():
 
 def plugin_loaded():
     global thread
-
     thread = threading.Thread(target=sticky_main, name="Sticky")
     thread.start()
     print(thread)
 
-class toggleStickyCommand(sublime_plugin.TextCommand):
-    def run(self, edit):
-        global enabled
-        enabled = not enabled
-        if enabled:
-            plugin_loaded()
-        else:
-            view.hide_popup()
+
+
+
+
 
